@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Public Cameras</title>
+    <script>
+      (function () {
+        var path = location.pathname + location.search;
+        var parts = path.split("/").filter(Boolean);
+        var cam = parts.indexOf("cam");
+        var cat = parts.indexOf("category");
+        if (cam !== -1 && parts[cam + 1]) {
+          location.replace("./#/cam/" + encodeURIComponent(parts[cam + 1]) + location.search);
+        } else if (cat !== -1 && parts[cat + 1]) {
+          location.replace("./#/category/" + encodeURIComponent(parts[cat + 1]) + location.search);
+        } else {
+          location.replace("./#" + location.search);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting…</p>
+  </body>
+</html>
