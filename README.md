@@ -83,7 +83,7 @@ See `inclusionCriteria` in `public/catalog.json`. Short version:
 
 ## Embed approach
 
-YouTube Live official embeds are the default because they are HTTPS, allowlisted, support muted autoplay, and never expose a camera’s IP or admin interface. The catalog stores only the video ID; the app constructs the iframe URL. If an embed fails, the detail view keeps the poster and an **Open on source** / YouTube link. We do not proxy or re-encode video.
+YouTube Live official embeds (`https://www.youtube.com/embed/<id>`) are the default because they are HTTPS, allowlisted, support muted autoplay, and never expose a camera’s IP or admin interface. The catalog stores only the video ID; the app constructs the iframe URL. If an embed fails, the detail view keeps the poster and an **Open on source** / YouTube link. We do not proxy or re-encode video.
 
 ## GitHub Pages (optional)
 

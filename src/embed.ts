@@ -38,7 +38,7 @@ export function youtubeEmbedUrl(youtubeId: string, options: EmbedOptions): strin
     origin: location.origin,
   });
   if (!options.controls) params.set("controls", "0");
-  return `https://www.youtube-nocookie.com/embed/${youtubeId}?${params.toString()}`;
+  return `https://www.youtube.com/embed/${youtubeId}?${params.toString()}`;
 }
 
 export function createYouTubeIframe(youtubeId: string, title: string, options: EmbedOptions): HTMLIFrameElement | null {
@@ -51,12 +51,12 @@ export function createYouTubeIframe(youtubeId: string, title: string, options: E
     ? "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     : "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
   iframe.allowFullscreen = true;
-  iframe.referrerPolicy = "strict-origin-when-cross-origin";
+  iframe.referrerPolicy = "origin-when-cross-origin";
   iframe.setAttribute("loading", "lazy");
   return iframe;
 }
 
 export function pauseYouTube(iframe: HTMLIFrameElement | null): void {
   if (!iframe?.contentWindow) return;
-  iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "pauseVideo", args: [] }), "https://www.youtube-nocookie.com");
+  iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "pauseVideo", args: [] }), "https://www.youtube.com");
 }

@@ -79,10 +79,12 @@ function renderFooter(): HTMLElement {
 
 function renderGrid(route: Route): HTMLElement {
   const catalog = getCatalog();
-  const cams = filterCameras(route);
+  const matches = filterCameras(route);
   const featured = !route.favoritesOnly && route.category === "all" && !route.query && route.region === "all"
     ? catalog.cameras.filter((c) => c.featured)
     : [];
+  const featuredIds = new Set(featured.map((c) => c.id));
+  const cams = matches.filter((c) => !featuredIds.has(c.id));
 
   const wrap = el("div", "grid-page");
   wrap.innerHTML = `
@@ -102,7 +104,7 @@ function renderGrid(route: Route): HTMLElement {
     ` : ""}
     <section class="results" aria-live="polite">
       <div class="section-head">
-        <h2>${resultsTitle(route, cams.length)}</h2>
+        <h2>${resultsTitle(route, matches.length)}</h2>
         <p>${route.favoritesOnly ? "Saved on this device only." : "Muted in the grid. Open a camera to go fullscreen."}</p>
       </div>
       ${cams.length ? `<div class="cam-grid">${cams.map((cam) => cardHtml(cam, false)).join("")}</div>` : emptyHtml(route)}
@@ -237,7 +239,16 @@ function emptyHtml(route: Route): string {
   if (route.favoritesOnly) {
     return `<div class="empty"><h3>No favorites yet</h3><p>Tap the heart on a camera to save it on this phone or computer.</p></div>`;
   }
-  return `<div class="empty"><h3>No cameras match</h3><p>Clear a filter or try another search.</p></div>`;
+  const bits: string[] = [];
+  if (route.query) bits.push(`“${escapeHtml(route.query)}”`);
+  if (route.category && route.category !== "all") bits.push(categoryLabel(route.category));
+  if (route.region && route.region !== "all") bits.push(regionLabel(route.region));
+  const detail = bits.length ? ` for ${bits.join(" · ")}` : "";
+  return `<div class="empty">
+    <h3>No cameras match${detail}</h3>
+    <p>Try another search, or reset filters.</p>
+    <a class="btn primary" href="${hrefFor({ view: "grid", query: route.query, category: "all", region: "all", sort: "featured", cameraId: undefined, favoritesOnly: false })}">Search all cameras</a>
+  </div>`;
 }
 
 function bindHeader(root: HTMLElement): void {
@@ -347,25 +358,30 @@ function bindDetail(root: HTMLElement, route: Route): void {
   document.addEventListener("keydown", onKey);
 
   root.querySelector("[data-share]")?.addEventListener("click", async (event) => {
-    const url = new URL(hrefFor({ view: "detail", cameraId: cam.id }), location.href).href;
+    const url = `${location.origin}${location.pathname}${hrefFor({
+      view: "detail",
+      cameraId: cam.id,
+      favoritesOnly: false,
+      query: "",
+      category: "all",
+      region: "all",
+      sort: "featured",
+    })}`;
     const btn = event.currentTarget as HTMLButtonElement;
+    const reset = () => {
+      window.setTimeout(() => {
+        btn.textContent = "Share";
+      }, 1800);
+    };
     try {
-      if (navigator.share) {
-        await navigator.share({ title: cam.name, text: `${cam.name} — ${cam.place}`, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        btn.textContent = "Link copied";
-        window.setTimeout(() => {
-          btn.textContent = "Share";
-        }, 1600);
-      }
+      await navigator.clipboard.writeText(url);
+      btn.textContent = "Link copied";
     } catch {
-      try {
-        await navigator.clipboard.writeText(url);
-        btn.textContent = "Link copied";
-      } catch {
-        btn.textContent = "Copy failed";
-      }
+      btn.textContent = "Copy failed";
+    }
+    reset();
+    if (navigator.share) {
+      navigator.share({ title: cam.name, text: `${cam.name} — ${cam.place}`, url }).catch(() => undefined);
     }
   });
 

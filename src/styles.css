@@ -146,6 +146,18 @@ button, input, select { font: inherit; color: inherit; }
   gap: 14px;
 }
 .featured-row { grid-template-columns: 1fr; }
+@media (max-width: 719px) {
+  .featured-row {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+  }
+  .featured-row .cam-card {
+    flex: 0 0 min(86vw, 340px);
+    scroll-snap-align: start;
+  }
+}
 .cam-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 720px) {
   .cam-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -184,6 +196,7 @@ button, input, select { font: inherit; color: inherit; }
   object-fit: cover;
 }
 .cam-player iframe { pointer-events: none; }
+.cam-player[hidden] { display: none !important; }
 .live-badge {
   position: absolute;
   top: 10px;
@@ -276,6 +289,9 @@ button, input, select { font: inherit; color: inherit; }
   background: #0b0d10;
   text-align: center;
   padding: 24px;
+}
+.player-fallback[hidden] {
+  display: none !important;
 }
 .player-toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
 .detail-head h1 { margin: 6px 0 8px; font-size: clamp(1.8rem, 4vw, 3rem); letter-spacing: -0.04em; }
