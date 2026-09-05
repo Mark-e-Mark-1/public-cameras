@@ -368,21 +368,28 @@ function bindDetail(root: HTMLElement, route: Route): void {
       sort: "featured",
     })}`;
     const btn = event.currentTarget as HTMLButtonElement;
-    const reset = () => {
-      window.setTimeout(() => {
-        btn.textContent = "Share";
-      }, 1800);
-    };
-    try {
-      await navigator.clipboard.writeText(url);
-      btn.textContent = "Link copied";
-    } catch {
-      btn.textContent = "Copy failed";
+    const phone = window.matchMedia("(pointer: coarse)").matches;
+    if (phone && navigator.share) {
+      try {
+        await navigator.share({ title: cam.name, text: `${cam.name} — ${cam.place}`, url });
+        return;
+      } catch {
+        /* user canceled or share unavailable — fall through to copy */
+      }
     }
-    reset();
-    if (navigator.share) {
-      navigator.share({ title: cam.name, text: `${cam.name} — ${cam.place}`, url }).catch(() => undefined);
+    let copied = copyToClipboard(url);
+    if (!copied && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(url);
+        copied = true;
+      } catch {
+        copied = false;
+      }
     }
+    btn.textContent = copied ? "Link copied" : "Copy failed";
+    window.setTimeout(() => {
+      btn.textContent = "Share";
+    }, 2000);
   });
 
   const relatedRoot = root.querySelector(".related-grid");
@@ -505,6 +512,24 @@ function heartSvg(on: boolean): string {
   return on
     ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.2-4.6-9.3-8.7C1 9.2 2.4 6 5.6 6c1.8 0 3.1 1 3.9 2.2C10.3 7 11.6 6 13.4 6c3.2 0 4.6 3.2 2.9 6.3C19.2 16.4 12 21 12 21Z"/></svg>`
     : `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 19.6C4.8 14.7 3.2 10.5 5.4 7.8 6.7 6.2 8.8 6 10 7.1c.7.6 1.1 1.4 2 1.4s1.3-.8 2-1.4C15.2 6 17.3 6.2 18.6 7.8c2.2 2.7.6 6.9-6.6 11.8Z"/></svg>`;
+}
+
+function copyToClipboard(text: string): boolean {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.append(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    if (ok) return true;
+  } catch {
+    /* use async clipboard below */
+  }
+  return false;
 }
 
 function el(tag: string, className: string): HTMLElement {
