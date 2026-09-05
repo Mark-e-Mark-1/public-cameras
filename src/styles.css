@@ -311,6 +311,22 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--muted);
   font-size: 13px;
 }
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 80;
+  min-height: var(--tap);
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
 
 @media (max-width: 719px) {
   .topbar-inner { grid-template-columns: 1fr auto; }

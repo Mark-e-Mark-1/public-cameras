@@ -357,41 +357,6 @@ function bindDetail(root: HTMLElement, route: Route): void {
   };
   document.addEventListener("keydown", onKey);
 
-  root.querySelector("[data-share]")?.addEventListener("click", async (event) => {
-    const url = `${location.origin}${location.pathname}${hrefFor({
-      view: "detail",
-      cameraId: cam.id,
-      favoritesOnly: false,
-      query: "",
-      category: "all",
-      region: "all",
-      sort: "featured",
-    })}`;
-    const btn = event.currentTarget as HTMLButtonElement;
-    const phone = window.matchMedia("(pointer: coarse)").matches;
-    if (phone && navigator.share) {
-      try {
-        await navigator.share({ title: cam.name, text: `${cam.name} — ${cam.place}`, url });
-        return;
-      } catch {
-        /* user canceled or share unavailable — fall through to copy */
-      }
-    }
-    let copied = copyToClipboard(url);
-    if (!copied && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(url);
-        copied = true;
-      } catch {
-        copied = false;
-      }
-    }
-    btn.textContent = copied ? "Link copied" : "Copy failed";
-    window.setTimeout(() => {
-      btn.textContent = "Share";
-    }, 2000);
-  });
-
   const relatedRoot = root.querySelector(".related-grid");
   if (relatedRoot) {
     cleanupLive = bindGridLivePlayers(
@@ -512,6 +477,34 @@ function heartSvg(on: boolean): string {
   return on
     ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.2-4.6-9.3-8.7C1 9.2 2.4 6 5.6 6c1.8 0 3.1 1 3.9 2.2C10.3 7 11.6 6 13.4 6c3.2 0 4.6 3.2 2.9 6.3C19.2 16.4 12 21 12 21Z"/></svg>`
     : `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 19.6C4.8 14.7 3.2 10.5 5.4 7.8 6.7 6.2 8.8 6 10 7.1c.7.6 1.1 1.4 2 1.4s1.3-.8 2-1.4C15.2 6 17.3 6.2 18.6 7.8c2.2 2.7.6 6.9-6.6 11.8Z"/></svg>`;
+}
+
+export function shareCameraLink(cam: Camera, btn: HTMLButtonElement): void {
+  const url = `${location.origin}${location.pathname}${hrefFor({
+    view: "detail",
+    cameraId: cam.id,
+    favoritesOnly: false,
+    query: "",
+    category: "all",
+    region: "all",
+    sort: "featured",
+  })}`;
+  const copied = copyToClipboard(url);
+  const message = copied ? "Link copied" : "Copy failed";
+  btn.textContent = message;
+  showToast(message);
+  window.setTimeout(() => {
+    btn.textContent = "Share";
+  }, 2200);
+}
+
+function showToast(message: string): void {
+  document.querySelector(".toast")?.remove();
+  const toast = el("div", "toast");
+  toast.setAttribute("role", "status");
+  toast.textContent = message;
+  document.body.append(toast);
+  window.setTimeout(() => toast.remove(), 2200);
 }
 
 function copyToClipboard(text: string): boolean {
