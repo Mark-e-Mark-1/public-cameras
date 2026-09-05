@@ -4,7 +4,23 @@ A small browser app for Mark’s computer and phone: curated **live public camer
 
 No backend. The catalog is a JSON file. Video stays on YouTube — this site only embeds official HTTPS players.
 
-## Run locally
+## Run on the PC (Windows)
+
+**Double-click `Start-Public-Cameras.bat`** in `C:\Users\mcall\projects\public-cameras`.
+
+The launcher `cd`s to the project, uses `npm.cmd` (so PowerShell execution policy does not matter), installs `node_modules` if needed, builds the static site, serves `dist/` at `http://127.0.0.1:4173/`, and opens your default browser. Leave the black window open while you watch; close it to stop the server.
+
+Needs [Node.js LTS](https://nodejs.org) on PATH.
+
+### Pin a desktop shortcut
+
+1. Right-click `Start-Public-Cameras.bat` → **Show more options** → **Send to** → **Desktop (create shortcut)**.
+2. Optional: right-click the new shortcut → **Properties** → **Change Icon**.
+3. Pin that `.lnk` to the taskbar or Start — Windows will not pin the `.bat` itself.
+
+PowerShell-friendly: from the project folder run `.\Start-Public-Cameras.bat`. It still calls `npm.cmd`, so you do not need to change execution policy.
+
+### Manual / phone-on-Wi-Fi
 
 ```bash
 cd C:\Users\mcall\projects\public-cameras
@@ -12,18 +28,9 @@ npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (usually `http://localhost:5173`).
-
-### Open on your phone (same Wi-Fi)
-
-1. Run `npm run dev` (it already binds `--host`).
-2. On the computer, note the Network URL, e.g. `http://192.168.1.23:5173`.
-3. Open that address in the phone browser.
-4. Optional: use **Add to Home Screen** — the app is PWA-friendly (manifest + standalone display).
+Then open the URL Vite prints (usually `http://localhost:5173`). For the phone on the same Wi-Fi, use the **Network** URL (e.g. `http://192.168.1.23:5173`). Optional: **Add to Home Screen** — the app is PWA-friendly.
 
 If Windows Firewall asks, allow Node on private networks.
-
-### Production build
 
 ```bash
 npm run validate
@@ -32,6 +39,44 @@ npm run preview
 ```
 
 `dist/` is a static site you can drop on any host.
+
+## Pixel APK
+
+Native WebView wrapper (`android/`, package `com.markemcallister.publiccameras`) that ships the built web shell offline. Live streams still need network (YouTube). Portrait and landscape both work. Hardware **Back** goes through WebView history, then exits.
+
+APK (in git): `artifacts/PublicCameras.apk`  
+After `git pull` that is `C:\Users\mcall\projects\public-cameras\artifacts\PublicCameras.apk`.
+
+### Sideload on a Google Pixel
+
+**Option A — file copy**
+
+1. Copy `artifacts/PublicCameras.apk` to the phone (Drive, USB, Messages, etc.).
+2. Open the Files app, tap the APK, then **Install**.
+3. If Android blocks it: **Settings → Apps → Special app access → Install unknown apps** → allow the app you used to open the APK (Files, Chrome, Drive, …).
+
+**Option B — USB (`adb`)**
+
+1. On the Pixel: **Settings → About phone** → tap **Build number** seven times.
+2. **Settings → System → Developer options** → enable **USB debugging**.
+3. Connect the phone and run:
+
+```bash
+adb install -r artifacts/PublicCameras.apk
+```
+
+### Rebuild the APK
+
+Requires JDK 17+ and the Android SDK (compile SDK 34).
+
+```bash
+cd android
+# local.properties must set sdk.dir to your Android SDK path
+# (see local.properties.example)
+./gradlew :app:assembleDebug
+```
+
+Copy `android/app/build/outputs/apk/debug/app-debug.apk` over `artifacts/PublicCameras.apk` if you rebuild.
 
 ## Use the app
 
@@ -77,7 +122,7 @@ Do **not** add raw IP URLs, RTSP, CCTV dumps, Shodan finds, home cameras, or adm
 See `inclusionCriteria` in `public/catalog.json`. Short version:
 
 - Public, official, or partner livestream (EarthCam / explore.org / NASA / city / port / park).
-- Official YouTube Live iframe only (`youtube-nocookie.com/embed/<id>` built in code).
+- Official YouTube Live iframe only (`youtube.com/embed/<id>` built in code).
 - Attribution on every detail view.
 - Quality over quantity (~20–40 cams).
 
@@ -100,3 +145,4 @@ YouTube Live official embeds (`https://www.youtube.com/embed/<id>`) are the defa
 | `npm run validate` | Security/shape check on `public/catalog.json` |
 | `npm run build` | Typecheck + static build |
 | `npm run preview` | Serve the production build |
+| `npm run start:pc` | Serve `dist` on port 4173 and open the browser |
